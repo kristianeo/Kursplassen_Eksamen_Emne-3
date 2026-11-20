@@ -12,6 +12,8 @@ public class KursplassenDbContext(DbContextOptions<KursplassenDbContext> options
     {
         modelBuilder.Entity<Course>(course =>
         {
+            course.ToTable("courses");
+            
             course.Property(c => c.Title)
                 .HasMaxLength(180);
             course.Property(c => c.Description)
@@ -32,6 +34,8 @@ public class KursplassenDbContext(DbContextOptions<KursplassenDbContext> options
 
         modelBuilder.Entity<User>(user =>
         {
+            user.ToTable("users");
+            
             user.Property(u => u.Email)
                 .HasMaxLength(254);
             user.Property(u => u.PasswordHash)
@@ -41,13 +45,22 @@ public class KursplassenDbContext(DbContextOptions<KursplassenDbContext> options
             user.Property(u => u.Role)
                 .HasConversion<string>()
                 .HasColumnType("enum('Participant','Instructor')");
+
+            user.HasIndex(u => u.Email).IsUnique();
         });
 
         modelBuilder.Entity<Registration>(registration =>
         {
+            registration.ToTable("registrations");
+            
             registration.HasOne(r => r.Course)
                 .WithMany(c => c.Registrations)
                 .HasForeignKey(r => r.CourseId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            registration.HasOne(r => r.Participant)
+                .WithMany(u => u.Registrations)
+                .HasForeignKey(r => r.ParticipantUserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             registration.HasIndex(r => new { r.CourseId, r.ActiveParticipantUserId })
