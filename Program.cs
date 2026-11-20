@@ -1,3 +1,6 @@
+using Kursplassen_Eksamen_Emne_3;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -5,6 +8,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+var connectionString = builder.Configuration.GetConnectionString("Default")
+                       ?? throw new InvalidOperationException("Connection string 'Default' not found.");
+
+builder.Services.AddDbContext<KursplassenDbContext>(options =>
+    options.UseMySQL(connectionString));
 
 var app = builder.Build();
 
