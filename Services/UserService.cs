@@ -11,7 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 namespace Kursplassen_Eksamen_Emne_3.Services;
 
 public class UserService(KursplassenDbContext connection, 
-    PasswordHasher<User> hasher,
+    IPasswordHasher<User> hasher,
     IConfiguration config) : IUserService
 {
     public async Task<UserDto> RegisterAsync(CreateUserDto dto)
@@ -22,7 +22,7 @@ public class UserService(KursplassenDbContext connection,
         User user = new User
         {
             Id = Guid.NewGuid(),
-            Email = dto.Email,
+            Email = dto.Email.Trim().ToLowerInvariant(),
             DisplayName = dto.DisplayName,
             Role = UserRole.Participant,
             CreatedAtUtc = DateTime.UtcNow
@@ -36,15 +36,14 @@ public class UserService(KursplassenDbContext connection,
         return user.ToDto();
     }
 
-    public async Task<UserDto> LoginAsync(LoginDto dto)
+    public async Task<LoginResponseDto> LoginAsync(LoginDto dto)
     {
-        var user = await connection.Users.SingleOrDefaultAsync(u => u.Email == dto.Email);
+        var user = await connection.Users.SingleOrDefaultAsync(u => u.Email.Equals(dto.Email.Trim(), StringComparison.InvariantCultureIgnoreCase));
         if (user is null ||
             hasher.VerifyHashedPassword(user, user.PasswordHash, dto.Password) == PasswordVerificationResult.Failed)
             throw new UnauthorizedException("Invalid email or password.");
 
-        CreateToken(user);
-        return new UserDto();   // the JWT code from the previous answer
+        return new LoginResponseDto { Token = CreateToken(user) };
     }
     
     private string CreateToken(User user)

@@ -58,10 +58,6 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapGet("/secret", (ClaimsPrincipal user) => $"Hello {user.Identity?.Name}")
-    .RequireAuthorization();
-
-
 app.MapControllers();
 
 app.Run();

@@ -6,6 +6,6 @@ namespace Kursplassen_Eksamen_Emne_3.Services;
 public interface IUserService
 {
     Task<UserDto> RegisterAsync(CreateUserDto dto);
-    Task<UserDto> LoginAsync(LoginDto dto);
+    Task<LoginResponseDto> LoginAsync(LoginDto dto);
     
 }
