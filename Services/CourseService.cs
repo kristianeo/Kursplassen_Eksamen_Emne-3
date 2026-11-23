@@ -1,3 +1,4 @@
+using Kursplassen_Eksamen_Emne_3.Dtos;
 using Kursplassen_Eksamen_Emne_3.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,9 +22,8 @@ public class CourseService(KursplassenDbContext connection) : ICourseService
     {
         return await connection.Courses.FirstOrDefaultAsync(c => c.Id == id);
     }
-
-    //TODO: Needs CreateCourseDTO
-    public Task<Course> Create()
+    
+    public Task<Course> Create(CreateCourseDto dto)
     {
         throw new NotImplementedException();
     }
