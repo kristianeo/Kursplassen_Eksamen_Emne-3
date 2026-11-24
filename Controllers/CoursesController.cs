@@ -13,4 +13,10 @@ public class CoursesController(ICourseService service) : ControllerBase
     {
         return Ok(await service.GetAll());
     }
+
+    [HttpGet("{id:Guid}")]
+    public async Task<ActionResult<CourseDto>> GetById(Guid id)
+    {
+        return Ok(await service.GetById(id));
+    }
 }

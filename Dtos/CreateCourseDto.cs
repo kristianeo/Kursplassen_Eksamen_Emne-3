@@ -13,6 +13,6 @@ public class CreateCourseDto
     [Required] public DateTime EndsAtUtc { get; set; }
     [Required] 
     [StringLength(180)] public string Location { get; set; } = string.Empty;
-    [Required] public int Capacity { get; set; }
+    [Required][Range(1, int.MaxValue)] public int Capacity { get; set; }
     public CourseStatus Status { get; set; } = CourseStatus.Draft;
 }

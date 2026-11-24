@@ -1,3 +1,4 @@
+using Kursplassen_Eksamen_Emne_3.Dtos;
 using Kursplassen_Eksamen_Emne_3.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -5,27 +6,36 @@ namespace Kursplassen_Eksamen_Emne_3.Services;
 
 public class RegistrationService(KursplassenDbContext connection) : IRegistrationService
 {
-    public async Task<IEnumerable<Registration>> GetAll()
+    public async Task<IEnumerable<RegistrationDto>> GetAll()
     {
-        return await connection.Registrations.ToListAsync();
+        var registrations = await connection.Registrations.ToListAsync();
+
+        return registrations.Select(r => r.ToDto()).ToList();
     }
 
-    public async Task<IEnumerable<Registration>> GetUserRegistrations(Guid userId) =>
-        await connection.Registrations
-            .Where(r => r.ParticipantUserId == userId)
-            .Include(r => r.Participant)
-            .Include(r => r.Course)
-            .AsNoTracking()
-            .OrderBy(r => r.Course.StartsAtUtc)
-            .ToListAsync();
-
-    public async Task<Registration?> GetById(Guid id)
+    public async Task<IEnumerable<RegistrationDto>> GetUserRegistrations(Guid userId)
     {
-        return await connection.Registrations.FirstOrDefaultAsync(r => r.Id == id);
+        var registrations = await connection.Registrations
+                    .Where(r => r.ParticipantUserId == userId)
+                    .Include(r => r.Participant)
+                    .Include(r => r.Course)
+                    .AsNoTracking()
+                    .OrderBy(r => r.Course.StartsAtUtc)
+                    .ToListAsync();
+
+        return registrations.Select(r => r.ToDto()).ToList();
+    }
+        
+
+    public async Task<RegistrationDto?> GetById(Guid id)
+    {
+        var registration = await connection.Registrations.FirstOrDefaultAsync(r => r.Id == id);
+
+        return registration?.ToDto();
     }
 
     //TODO: CreateRegistrationDTO
-    public Task<Registration> Create()
+    public Task<RegistrationDto> Create()
     {
         throw new NotImplementedException();
     }
@@ -42,7 +52,7 @@ public class RegistrationService(KursplassenDbContext connection) : IRegistratio
     }
 
     //TODO: EditRegistrationDto
-    public Task<Registration> Edit(Guid id)
+    public Task<RegistrationDto> Edit(Guid id)
     {
         throw new NotImplementedException();
     }

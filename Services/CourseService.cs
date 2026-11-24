@@ -6,24 +6,36 @@ namespace Kursplassen_Eksamen_Emne_3.Services;
 
 public class CourseService(KursplassenDbContext connection) : ICourseService
 {
-    public async Task<IEnumerable<Course>> GetAll()
+    public async Task<IEnumerable<CourseDto>> GetAll()
     {
-        return await connection.Courses.ToListAsync();
+        var courses = await connection.Courses
+            .Where(c => c.Status == CourseStatus.Published 
+                        && c.StartsAtUtc >= DateTime.UtcNow)
+            .ToListAsync();
+
+        return courses.Select(c => c.ToDto()).ToList();
     }
 
-    public async Task<IEnumerable<Course>> GetUserCourses(Guid userId) =>
-        await connection.Courses
+    public async Task<IEnumerable<CourseDto>> GetUserCourses(Guid userId)
+    {
+        var courses = await connection.Courses
             .Where(c => c.OwnerUserId == userId)
             .Include(c => c.Owner)
             .AsNoTracking()
             .OrderBy(c => c.StartsAtUtc)
             .ToListAsync();
-    public async Task<Course?> GetById(Guid id)
+
+        return courses.Select(c => c.ToDto()).ToList();
+    }
+        
+    public async Task<CourseDto?> GetById(Guid id)
     {
-        return await connection.Courses.FirstOrDefaultAsync(c => c.Id == id);
+        var course = await connection.Courses.FirstOrDefaultAsync(c => c.Id == id);
+
+        return course?.ToDto();
     }
     
-    public Task<Course> Create(CreateCourseDto dto)
+    public Task<CourseDto> Create(CreateCourseDto dto)
     {
         throw new NotImplementedException();
     }
@@ -40,7 +52,7 @@ public class CourseService(KursplassenDbContext connection) : ICourseService
     }
 
     //TODO: Needs EditCourseDTO
-    public Task<Course> Edit(Guid id)
+    public Task<CourseDto> Edit(Guid id)
     {
         throw new NotImplementedException();
     }
