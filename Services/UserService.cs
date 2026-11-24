@@ -16,7 +16,8 @@ public class UserService(KursplassenDbContext connection,
 {
     public async Task<UserDto> RegisterAsync(CreateUserDto dto)
     {
-        if (await connection.Users.AnyAsync(u => u.Email == dto.Email))
+        var email = dto.Email.Trim().ToLowerInvariant();
+        if (await connection.Users.AnyAsync(u => u.Email == email))
             throw new ConflictException("The email is already in use");
 
         User user = new User
@@ -38,7 +39,8 @@ public class UserService(KursplassenDbContext connection,
 
     public async Task<LoginResponseDto> LoginAsync(LoginDto dto)
     {
-        var user = await connection.Users.SingleOrDefaultAsync(u => u.Email.Equals(dto.Email.Trim(), StringComparison.InvariantCultureIgnoreCase));
+        var email = dto.Email.Trim().ToLowerInvariant();
+        var user = await connection.Users.SingleOrDefaultAsync(u => u.Email.Equals(email));
         if (user is null ||
             hasher.VerifyHashedPassword(user, user.PasswordHash, dto.Password) == PasswordVerificationResult.Failed)
             throw new UnauthorizedException("Invalid email or password.");
