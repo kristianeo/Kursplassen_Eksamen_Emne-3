@@ -1,5 +1,7 @@
+using System.Security.Claims;
 using Kursplassen_Eksamen_Emne_3.Dtos;
 using Kursplassen_Eksamen_Emne_3.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Kursplassen_Eksamen_Emne_3.Controllers;
@@ -14,9 +16,29 @@ public class CoursesController(ICourseService service) : ControllerBase
         return Ok(await service.GetAll());
     }
 
-    [HttpGet("{id:Guid}")]
-    public async Task<ActionResult<CourseDto>> GetById(Guid id)
+    [HttpGet("{courseId:Guid}")]
+    public async Task<ActionResult<CourseDto>> GetById(Guid courseId)
     {
-        return Ok(await service.GetById(id));
+        return Ok(await service.GetById(courseId));
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "Instructor")]
+    public async Task<ActionResult<CourseDto>> Create(CreateCourseDto dto)
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        
+        var created = await service.Create(dto, userId);
+        return CreatedAtAction(nameof(GetById), new {courseId = created.Id },
+            created);
+    }
+    
+    [HttpPut("{courseId:Guid}")]
+    [Authorize(Policy = "CourseOwner")]
+    public async Task<ActionResult<CourseDto>> EditCourse(EditCourseDto dto, Guid courseId)
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+        return Ok(await service.Edit(dto, courseId, userId));
     }
 }

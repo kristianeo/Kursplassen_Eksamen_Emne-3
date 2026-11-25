@@ -1,6 +1,8 @@
 using Kursplassen_Eksamen_Emne_3.Dtos;
+using Kursplassen_Eksamen_Emne_3.Exceptions;
 using Kursplassen_Eksamen_Emne_3.Models;
 using Microsoft.EntityFrameworkCore;
+using ValidationException = Kursplassen_Eksamen_Emne_3.Exceptions.ValidationException;
 
 namespace Kursplassen_Eksamen_Emne_3.Services;
 
@@ -28,20 +30,60 @@ public class CourseService(KursplassenDbContext connection) : ICourseService
         return courses.Select(c => c.ToDto()).ToList();
     }
         
-    public async Task<CourseDto?> GetById(Guid id)
+    public async Task<CourseDetailDto> GetById(Guid id)
     {
-        var course = await connection.Courses.FirstOrDefaultAsync(c => c.Id == id);
+        var course = await connection.Courses
+            .AsNoTracking()
+            .Where(c => c.Id == id)
+            .Select(c => new CourseDetailDto
+            {
+                Id = c.Id,
+                Title = c.Title,
+                Description = c.Description,
+                StartsAtUtc = c.StartsAtUtc,
+                EndsAtUtc = c.EndsAtUtc,
+                Location = c.Location,
+                Capacity = c.Capacity,
+                Status = c.Status,
+                RegisteredCount = c.Registrations.Count(r => r.CancelledAtUtc == null),
+                })
+            .FirstOrDefaultAsync();
+        
+        if (course is null)
+            throw new NotFoundException("Course not found.");
 
-        return course?.ToDto();
+        course.AvailableSpots = Math.Max(0, course.Capacity - course.RegisteredCount);
+        return course;
     }
-    
-    public Task<CourseDto> Create(CreateCourseDto dto)
+
+    public async Task<CourseDto> Create(CreateCourseDto dto, Guid userId)
     {
-        throw new NotImplementedException();
+        if (dto.EndsAtUtc <= dto.StartsAtUtc)
+            throw new ValidationException("End time must be after start time.");
+        
+        Course course = new Course
+        {
+            Id = Guid.NewGuid(),
+            OwnerUserId = userId,
+            Title = dto.Title,
+            Description = dto.Description,
+            StartsAtUtc = dto.StartsAtUtc,
+            EndsAtUtc = dto.EndsAtUtc,
+            Location = dto.Location,
+            Capacity = dto.Capacity,
+            Status = dto.Status,
+            CreatedAtUtc = DateTime.UtcNow,
+            UpdatedAtUtc = DateTime.UtcNow
+        };
+
+        connection.Courses.Add(course);
+        await connection.SaveChangesAsync();
+
+        return course.ToDto();
     }
 
     //TODO: Add forbidden response with userid 
-    public async Task<RequestResponse> Delete(Guid id)
+    public async Task<RequestResponse> Delete(Guid id, Guid userId)
     {
         var course = await connection.Courses.FindAsync(id);
         if (course is null) return RequestResponse.NotFound;
@@ -50,10 +92,35 @@ public class CourseService(KursplassenDbContext connection) : ICourseService
         await connection.SaveChangesAsync();
         return RequestResponse.Approved;
     }
-
-    //TODO: Needs EditCourseDTO
-    public Task<CourseDto> Edit(Guid id)
+    
+    public async Task<CourseDto> Edit(EditCourseDto dto, Guid id, Guid userId)
     {
-        throw new NotImplementedException();
+        var course = await connection.Courses.FindAsync(id);
+        if (course == null)
+            throw new NotFoundException("Course not found");
+        
+        if (course.OwnerUserId != userId)
+            throw new ForbiddenException("You are not the owner of this course");
+        
+        if (dto.EndsAtUtc <= dto.StartsAtUtc)
+            throw new ValidationException("End time must be after start time.");
+        
+        var activeCount = await connection.Registrations
+            .CountAsync(r => r.CourseId == id && r.CancelledAtUtc == null);
+        if (dto.Capacity < activeCount)
+            throw new ConflictException("Capacity can't be lower than the number of active registrations.");
+
+        course.Title = dto.Title;
+        course.Description = dto.Description;
+        course.StartsAtUtc = dto.StartsAtUtc;
+        course.EndsAtUtc = dto.EndsAtUtc;
+        course.Location = dto.Location;
+        course.Capacity = dto.Capacity;
+        course.Status = dto.Status;
+        course.UpdatedAtUtc = DateTime.UtcNow;
+        
+        await connection.SaveChangesAsync();
+
+        return course.ToDto();
     }
 }
