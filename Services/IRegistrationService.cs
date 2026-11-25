@@ -5,10 +5,7 @@ namespace Kursplassen_Eksamen_Emne_3.Services;
 
 public interface IRegistrationService
 {
-    public Task<IEnumerable<RegistrationDto>> GetAll();
-    public Task<IEnumerable<RegistrationDto>> GetUserRegistrations(Guid userId);
-    public Task<RegistrationDto?> GetById(Guid id);
+    public Task<IEnumerable<UserRegistrationDto>> GetUserRegistrations(Guid userId);
     public Task<RegistrationDto> Create(Guid courseId, Guid userId);
-    public Task Delete(Guid id);
-    public Task<RegistrationDto> Edit(Guid id);
+    public Task Cancel(Guid id);
 }

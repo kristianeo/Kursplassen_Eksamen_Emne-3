@@ -9,32 +9,31 @@ namespace Kursplassen_Eksamen_Emne_3.Services;
 
 public class RegistrationService(KursplassenDbContext connection) : IRegistrationService
 {
-    public async Task<IEnumerable<RegistrationDto>> GetAll()
+
+    public async Task<IEnumerable<UserRegistrationDto>> GetUserRegistrations(Guid userId)
     {
-        var registrations = await connection.Registrations.ToListAsync();
-
-        return registrations.Select(r => r.ToDto()).ToList();
-    }
-
-    public async Task<IEnumerable<RegistrationDto>> GetUserRegistrations(Guid userId)
-    {
-        var registrations = await connection.Registrations
-                    .Where(r => r.ParticipantUserId == userId)
-                    .Include(r => r.Participant)
-                    .Include(r => r.Course)
-                    .AsNoTracking()
-                    .OrderBy(r => r.Course.StartsAtUtc)
-                    .ToListAsync();
-
-        return registrations.Select(r => r.ToDto()).ToList();
-    }
-        
-
-    public async Task<RegistrationDto?> GetById(Guid id)
-    {
-        var registration = await connection.Registrations.FirstOrDefaultAsync(r => r.Id == id);
-
-        return registration?.ToDto();
+        return await connection.Registrations
+             .AsNoTracking()
+             .Where(r => r.ParticipantUserId == userId)
+             .OrderBy(r => r.Course.StartsAtUtc)
+             .Select(r => new UserRegistrationDto
+         {
+             Id = r.Id,
+             RegisteredAtUtc = r.RegisteredAtUtc,
+             CancelledAtUtc = r.CancelledAtUtc,
+             Course = new CourseDto
+             {
+                 Id = r.Course.Id,
+                 Title = r.Course.Title,
+                 Description = r.Course.Description,
+                 StartsAtUtc = r.Course.StartsAtUtc,
+                 EndsAtUtc = r.Course.EndsAtUtc,
+                 Location = r.Course.Location,
+                 Capacity = r.Course.Capacity,
+                 Status = r.Course.Status
+             }
+         })
+         .ToListAsync();
     }
 
     public async Task<RegistrationDto> Create(Guid courseId, Guid userId)
@@ -85,19 +84,18 @@ public class RegistrationService(KursplassenDbContext connection) : IRegistratio
         }
     }
     
-    //TODO: Should not delete, just cancel
-    public async Task Delete(Guid id)
+    public async Task Cancel(Guid id)
     {
+        //Do not particularly need this exception, as it is handled by the policy
         var registration = await connection.Registrations.FindAsync(id) ??
                            throw new NotFoundException("Registration not found");
+        
+        if (registration.CancelledAtUtc is not null)
+            throw new ConflictException("The registration is already cancelled");
 
-        connection.Registrations.Remove(registration);
+        registration.ActiveParticipantUserId = null;
+        registration.CancelledAtUtc = DateTime.UtcNow;
+        
         await connection.SaveChangesAsync();
-    }
-
-    //TODO: EditRegistrationDto
-    public Task<RegistrationDto> Edit(Guid id)
-    {
-        throw new NotImplementedException();
     }
 }

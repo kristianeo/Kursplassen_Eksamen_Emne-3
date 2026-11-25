@@ -24,7 +24,6 @@ public class Course
         return new CourseDto
         {
             Id = Id,
-            OwnerUserId = OwnerUserId,
             Title = Title,
             Description = Description,
             StartsAtUtc = StartsAtUtc,
@@ -32,8 +31,6 @@ public class Course
             Location = Location,
             Capacity = Capacity,
             Status = Status,
-            CreatedAtUtc = CreatedAtUtc,
-            UpdatedAtUtc = UpdatedAtUtc
         };
     }
 }
