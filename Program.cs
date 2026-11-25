@@ -1,8 +1,12 @@
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json.Serialization;
 using Kursplassen_Eksamen_Emne_3;
+using Kursplassen_Eksamen_Emne_3.Exceptions;
+using Kursplassen_Eksamen_Emne_3.Handlers;
 using Kursplassen_Eksamen_Emne_3.Models;
 using Kursplassen_Eksamen_Emne_3.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -11,7 +15,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
@@ -20,6 +26,18 @@ var connectionString = builder.Configuration.GetConnectionString("Default")
 
 builder.Services.AddDbContext<KursplassenDbContext>(options =>
     options.UseMySQL(connectionString));
+
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ICourseService, CourseService>();
+builder.Services.AddScoped<IRegistrationService, RegistrationService>();
+builder.Services.AddScoped<IAuthorizationHandler, CourseOwnerHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, RegistrationOwnerHandler>();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, ExceptionAuthorizationResultHandler>();
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<KursplassenDbContext>();
 
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer(options =>
@@ -36,28 +54,34 @@ builder.Services.AddAuthentication("Bearer")
         };
     });
 
-
 builder.Services.AddAuthorizationBuilder()
-    .AddPolicy("CanCreateCourses", policy =>
-        policy.RequireRole("Instructor"));
-
-builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<ICourseService, CourseService>();
-builder.Services.AddScoped<IRegistrationService, RegistrationService>();
+    .AddPolicy("CourseOwner", policy => policy.AddRequirements(new CourseOwnerRequirement()))
+    .AddPolicy("RegistrationOwner", policy =>
+        policy.AddRequirements(new RegistrationOwnerRequirement()));
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<KursplassenDbContext>();
+    var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>();
+
+    await db.Database.MigrateAsync();
+    await DbSeeder.SeedAsync(db, hasher);
 }
+
+app.UseExceptionHandler();
+
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHealthChecks("/health");
 
 app.Run();

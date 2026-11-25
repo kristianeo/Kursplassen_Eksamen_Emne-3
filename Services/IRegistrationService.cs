@@ -1,13 +1,11 @@
+using Kursplassen_Eksamen_Emne_3.Dtos;
 using Kursplassen_Eksamen_Emne_3.Models;
 
 namespace Kursplassen_Eksamen_Emne_3.Services;
 
 public interface IRegistrationService
 {
-    public Task<IEnumerable<Registration>> GetAll();
-    public Task<IEnumerable<Registration>> GetUserRegistrations(Guid userId);
-    public Task<Registration?> GetById(Guid id);
-    public Task<Registration> Create();
-    public Task<RequestResponse> Delete(Guid id);
-    public Task<Registration> Edit(Guid id);
+    public Task<IEnumerable<UserRegistrationDto>> GetUserRegistrations(Guid userId);
+    public Task<RegistrationDto> Create(Guid courseId, Guid userId);
+    public Task Cancel(Guid id);
 }

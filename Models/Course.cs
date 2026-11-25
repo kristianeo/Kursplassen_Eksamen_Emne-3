@@ -1,3 +1,5 @@
+using Kursplassen_Eksamen_Emne_3.Dtos;
+
 namespace Kursplassen_Eksamen_Emne_3.Models;
 
 public class Course
@@ -16,4 +18,19 @@ public class Course
 
     public User Owner { get; set; } = null!;
     public ICollection<Registration> Registrations { get; set; } = new List<Registration>();
+    
+    public CourseDto ToDto()
+    {
+        return new CourseDto
+        {
+            Id = Id,
+            Title = Title,
+            Description = Description,
+            StartsAtUtc = StartsAtUtc,
+            EndsAtUtc = EndsAtUtc,
+            Location = Location,
+            Capacity = Capacity,
+            Status = Status,
+        };
+    }
 }
