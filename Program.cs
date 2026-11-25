@@ -1,8 +1,10 @@
 using System.Security.Claims;
 using System.Text;
 using Kursplassen_Eksamen_Emne_3;
+using Kursplassen_Eksamen_Emne_3.Handlers;
 using Kursplassen_Eksamen_Emne_3.Models;
 using Kursplassen_Eksamen_Emne_3.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -21,6 +23,13 @@ var connectionString = builder.Configuration.GetConnectionString("Default")
 builder.Services.AddDbContext<KursplassenDbContext>(options =>
     options.UseMySQL(connectionString));
 
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ICourseService, CourseService>();
+builder.Services.AddScoped<IRegistrationService, RegistrationService>();
+builder.Services.AddScoped<IAuthorizationHandler, CourseOwnerHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, RegistrationOwnerHandler>();
+
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer(options =>
     {
@@ -36,15 +45,10 @@ builder.Services.AddAuthentication("Bearer")
         };
     });
 
-
 builder.Services.AddAuthorizationBuilder()
-    .AddPolicy("CanCreateCourses", policy =>
-        policy.RequireRole("Instructor"));
-
-builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<ICourseService, CourseService>();
-builder.Services.AddScoped<IRegistrationService, RegistrationService>();
+    .AddPolicy("CourseOwner", policy => policy.AddRequirements(new CourseOwnerRequirement()))
+    .AddPolicy("RegistrationOwner", policy =>
+        policy.AddRequirements(new RegistrationOwnerRequirement()));
 
 var app = builder.Build();
 
