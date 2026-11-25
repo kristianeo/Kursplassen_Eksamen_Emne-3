@@ -58,6 +58,9 @@ public class CourseService(KursplassenDbContext connection) : ICourseService
 
     public async Task<CourseDto> Create(CreateCourseDto dto, Guid userId)
     {
+        if (dto.StartsAtUtc <= DateTime.UtcNow)
+            throw new ValidationException("Start time must be in the future");
+        
         if (dto.EndsAtUtc <= dto.StartsAtUtc)
             throw new ValidationException("End time must be after start time.");
         
