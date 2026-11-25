@@ -238,3 +238,6 @@ Authorization: Bearer {{loginJonas.response.body.token}}
 
 ### Health check
 GET {{host}}/health
+
+###
+GET {{host}}/openapi/v1.json

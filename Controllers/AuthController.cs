@@ -10,6 +10,10 @@ namespace Kursplassen_Eksamen_Emne_3.Controllers;
 public class AuthController(IUserService service) : ControllerBase
 {
     [HttpPost("register")]
+    [ProducesResponseType<UserDto>(StatusCodes.Status201Created)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<ActionResult<UserDto>> Register(CreateUserDto dto)
     {
         return StatusCode(StatusCodes.Status201Created, 
@@ -17,6 +21,9 @@ public class AuthController(IUserService service) : ControllerBase
     }
     
     [HttpPost("login")]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<ActionResult<LoginResponseDto>> Login(LoginDto dto)
     {
         return await service.LoginAsync(dto);
