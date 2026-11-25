@@ -37,8 +37,14 @@ public class CoursesController(ICourseService service) : ControllerBase
     [Authorize(Policy = "CourseOwner")]
     public async Task<ActionResult<CourseDto>> EditCourse(EditCourseDto dto, Guid courseId)
     {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        return Ok(await service.Edit(dto, courseId));
+    }
 
-        return Ok(await service.Edit(dto, courseId, userId));
+    [HttpDelete("{courseId:Guid}")]
+    [Authorize(Policy = "CourseOwner")]
+    public async Task<ActionResult> Delete(Guid courseId)
+    {
+        await service.Delete(courseId);
+        return NoContent();
     }
 }

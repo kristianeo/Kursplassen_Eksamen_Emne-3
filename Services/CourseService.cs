@@ -81,26 +81,26 @@ public class CourseService(KursplassenDbContext connection) : ICourseService
 
         return course.ToDto();
     }
-
-    //TODO: Add forbidden response with userid 
-    public async Task<RequestResponse> Delete(Guid id, Guid userId)
+    
+    public async Task Delete(Guid id)
     {
-        var course = await connection.Courses.FindAsync(id);
-        if (course is null) return RequestResponse.NotFound;
+        var course = await connection.Courses.FindAsync(id) ?? 
+                     throw new NotFoundException("Course not found");
+        
+        var hasActive = await connection.Registrations
+            .AnyAsync(r => r.CourseId == id && r.CancelledAtUtc == null);
+        if (hasActive)
+            throw new ConflictException("A course with active registrations can't be deleted.");
         
         connection.Courses.Remove(course);
         await connection.SaveChangesAsync();
-        return RequestResponse.Approved;
     }
     
-    public async Task<CourseDto> Edit(EditCourseDto dto, Guid id, Guid userId)
+    public async Task<CourseDto> Edit(EditCourseDto dto, Guid id)
     {
         var course = await connection.Courses.FindAsync(id);
         if (course == null)
             throw new NotFoundException("Course not found");
-        
-        if (course.OwnerUserId != userId)
-            throw new ForbiddenException("You are not the owner of this course");
         
         if (dto.EndsAtUtc <= dto.StartsAtUtc)
             throw new ValidationException("End time must be after start time.");
@@ -123,4 +123,6 @@ public class CourseService(KursplassenDbContext connection) : ICourseService
 
         return course.ToDto();
     }
+    
+    
 }

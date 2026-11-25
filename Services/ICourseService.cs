@@ -9,6 +9,6 @@ public interface ICourseService
     public Task<IEnumerable<CourseDto>> GetUserCourses(Guid userId);
     public Task<CourseDetailDto> GetById(Guid id);
     public Task<CourseDto> Create(CreateCourseDto dto, Guid userId);
-    public Task<RequestResponse> Delete(Guid id, Guid userId);
-    public Task<CourseDto> Edit(EditCourseDto dto, Guid id, Guid userId);
+    public Task Delete(Guid id);
+    public Task<CourseDto> Edit(EditCourseDto dto, Guid id);
 }

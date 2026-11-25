@@ -5,6 +5,7 @@ namespace Kursplassen_Eksamen_Emne_3.Dtos;
 
 public class CreateCourseDto
 {
+    //TODO: Add feedback when wrong input 
     [Required]
     [StringLength(180), MinLength(3)]
     public string Title { get; set; } = string.Empty;
