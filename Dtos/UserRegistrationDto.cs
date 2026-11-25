@@ -5,5 +5,5 @@ public class UserRegistrationDto
     public Guid Id { get; set; }
     public DateTime RegisteredAtUtc { get; set; }
     public DateTime? CancelledAtUtc { get; set; }
-    public CourseDto Course { get; set; } = null!;
+    public CourseSummaryDto Course { get; set; } = null!;
 }

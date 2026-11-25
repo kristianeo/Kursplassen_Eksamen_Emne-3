@@ -21,16 +21,11 @@ public class RegistrationService(KursplassenDbContext connection) : IRegistratio
              Id = r.Id,
              RegisteredAtUtc = r.RegisteredAtUtc,
              CancelledAtUtc = r.CancelledAtUtc,
-             Course = new CourseDto
+             Course = new CourseSummaryDto
              {
                  Id = r.Course.Id,
                  Title = r.Course.Title,
-                 Description = r.Course.Description,
                  StartsAtUtc = r.Course.StartsAtUtc,
-                 EndsAtUtc = r.Course.EndsAtUtc,
-                 Location = r.Course.Location,
-                 Capacity = r.Course.Capacity,
-                 Status = r.Course.Status
              }
          })
          .ToListAsync();
