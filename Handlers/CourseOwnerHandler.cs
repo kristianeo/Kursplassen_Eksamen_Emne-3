@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Kursplassen_Eksamen_Emne_3.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,8 +24,10 @@ public class CourseOwnerHandler(KursplassenDbContext db)
             .Select(c => (Guid?)c.OwnerUserId)
             .FirstOrDefaultAsync();
 
-        // Course doesn't exist: let the request through so the service returns 404
-        if (ownerId is null || ownerId == userId)
+        if (ownerId is null)
+            throw new NotFoundException("Course not found.");
+        
+        if (ownerId == userId)
             context.Succeed(requirement);
     }
 }

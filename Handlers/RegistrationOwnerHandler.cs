@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Kursplassen_Eksamen_Emne_3.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,7 +24,10 @@ public class RegistrationOwnerHandler(KursplassenDbContext db)
             .Select(c => (Guid?)c.ParticipantUserId)
             .FirstOrDefaultAsync();
 
-        if (participantId is null || participantId == userId)
+        if (participantId is null)
+            throw new NotFoundException("Course not found.");
+        
+        if (participantId == userId)
             context.Succeed(requirement);
     }
 }
