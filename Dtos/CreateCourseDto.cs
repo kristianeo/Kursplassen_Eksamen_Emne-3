@@ -18,7 +18,7 @@ public class CreateCourseDto
          ErrorMessage = "Location must be between 3 and 180 characters long")] 
     public string Location { get; set; } = string.Empty;
     
-    [Required, Range(1, int.MaxValue, 
-         ErrorMessage = "Capacity must be at least 1")] public int Capacity { get; set; }
+    [Required, Range(1, int.MaxValue, ErrorMessage = "Capacity must be at least 1")] 
+    public int Capacity { get; set; }
     public CourseStatus Status { get; set; } = CourseStatus.Draft;
 }
