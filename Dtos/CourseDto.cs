@@ -12,4 +12,6 @@ public class CourseDto
     public string Location { get; set; } = string.Empty;
     public int Capacity { get; set; }
     public CourseStatus Status { get; set; }
+    public int RegisteredCount { get; set; }
+    public int AvailableSpots { get; set; }
 }

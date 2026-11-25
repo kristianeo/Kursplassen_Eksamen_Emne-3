@@ -19,7 +19,7 @@ public class Course
     public User Owner { get; set; } = null!;
     public ICollection<Registration> Registrations { get; set; } = new List<Registration>();
     
-    public CourseDto ToDto()
+    public CourseDto ToDto(int registeredCount = 0)
     {
         return new CourseDto
         {
@@ -31,6 +31,8 @@ public class Course
             Location = Location,
             Capacity = Capacity,
             Status = Status,
+            RegisteredCount = registeredCount,
+            AvailableSpots = Math.Max(0, Capacity - registeredCount)
         };
     }
 }

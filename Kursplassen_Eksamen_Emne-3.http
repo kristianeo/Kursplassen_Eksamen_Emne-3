@@ -240,4 +240,4 @@ Authorization: Bearer {{loginJonas.response.body.token}}
 GET {{host}}/health
 
 ###
-GET {{host}}/openapi/v1.json
+GET {{host}}/swagger

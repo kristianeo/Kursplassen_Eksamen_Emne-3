@@ -8,52 +8,34 @@ namespace Kursplassen_Eksamen_Emne_3.Services;
 
 public class CourseService(KursplassenDbContext connection) : ICourseService
 {
-    public async Task<IEnumerable<CourseDto>> GetAll()
-    {
-        var courses = await connection.Courses
+    public async Task<IEnumerable<CourseSummaryDto>> GetAll() =>  
+        await connection.Courses
+            .AsNoTracking()
             .Where(c => c.Status == CourseStatus.Published 
                         && c.StartsAtUtc >= DateTime.UtcNow)
+            .Select(c => new CourseSummaryDto()
+            {
+                Id = c.Id,
+                Title = c.Title,
+                StartsAtUtc = c.StartsAtUtc
+            })
             .ToListAsync();
-
-        return courses.Select(c => c.ToDto()).ToList();
-    }
-
-    public async Task<IEnumerable<CourseDto>> GetUserCourses(Guid userId)
-    {
-        var courses = await connection.Courses
-            .Where(c => c.OwnerUserId == userId)
-            .Include(c => c.Owner)
-            .AsNoTracking()
-            .OrderBy(c => c.StartsAtUtc)
-            .ToListAsync();
-
-        return courses.Select(c => c.ToDto()).ToList();
-    }
         
-    public async Task<CourseDetailDto> GetById(Guid id)
+    public async Task<CourseDto> GetById(Guid id)
     {
         var course = await connection.Courses
             .AsNoTracking()
             .Where(c => c.Id == id)
-            .Select(c => new CourseDetailDto
+            .Select(c => new
             {
-                Id = c.Id,
-                Title = c.Title,
-                Description = c.Description,
-                StartsAtUtc = c.StartsAtUtc,
-                EndsAtUtc = c.EndsAtUtc,
-                Location = c.Location,
-                Capacity = c.Capacity,
-                Status = c.Status,
-                RegisteredCount = c.Registrations.Count(r => r.CancelledAtUtc == null),
-                })
+                Course = c,
+                Registered = c.Registrations.Count(r => r.CancelledAtUtc == null)
+            })
             .FirstOrDefaultAsync();
         
         if (course is null)
             throw new NotFoundException("Course not found.");
-
-        course.AvailableSpots = Math.Max(0, course.Capacity - course.RegisteredCount);
-        return course;
+        return course.Course.ToDto(course.Registered);
     }
 
     public async Task<CourseDto> Create(CreateCourseDto dto, Guid userId)
@@ -124,7 +106,7 @@ public class CourseService(KursplassenDbContext connection) : ICourseService
         
         await connection.SaveChangesAsync();
 
-        return course.ToDto();
+        return course.ToDto(activeCount);
     }
     
     

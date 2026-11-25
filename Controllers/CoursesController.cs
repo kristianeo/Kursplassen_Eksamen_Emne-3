@@ -11,14 +11,14 @@ namespace Kursplassen_Eksamen_Emne_3.Controllers;
 public class CoursesController(ICourseService service) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<CourseDto>>> GetAll()
+    public async Task<ActionResult<IEnumerable<CourseSummaryDto>>> GetAll()
     {
         return Ok(await service.GetAll());
     }
 
     [HttpGet("{courseId:Guid}")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<CourseDetailDto>> GetById(Guid courseId)
+    public async Task<ActionResult<CourseDto>> GetById(Guid courseId)
     {
         return Ok(await service.GetById(courseId));
     }
