@@ -5,12 +5,20 @@ namespace Kursplassen_Eksamen_Emne_3.Dtos;
 
 public class EditCourseDto
 {
-    [StringLength(180), MinLength(3)]
+    [Required, StringLength(180, MinimumLength = 3, 
+         ErrorMessage = "Title must be between 3 and 180 characters long")]
     public string Title { get; set; } = string.Empty;
+    
     public string Description { get; set; } = string.Empty;
     public DateTime StartsAtUtc { get; set; }
     public DateTime EndsAtUtc { get; set; }
-    [StringLength(180)] public string Location { get; set; } = string.Empty;
-    [Range(1, int.MaxValue)] public int Capacity { get; set; }
+    
+    [StringLength(180, MinimumLength = 3, 
+         ErrorMessage = "Location must be between 3 and 180 characters long")]  
+    public string Location { get; set; } = string.Empty;
+    
+    [Range(1, int.MaxValue, ErrorMessage = "Capacity must be at least 1")] 
+    public int Capacity { get; set; }
+    
     public CourseStatus Status { get; set; }
 }
