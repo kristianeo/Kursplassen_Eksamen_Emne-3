@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using System.Text;
 using Kursplassen_Eksamen_Emne_3;
+using Kursplassen_Eksamen_Emne_3.Exceptions;
 using Kursplassen_Eksamen_Emne_3.Handlers;
 using Kursplassen_Eksamen_Emne_3.Models;
 using Kursplassen_Eksamen_Emne_3.Services;
@@ -29,6 +30,9 @@ builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<IRegistrationService, RegistrationService>();
 builder.Services.AddScoped<IAuthorizationHandler, CourseOwnerHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, RegistrationOwnerHandler>();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, ExceptionAuthorizationResultHandler>();
 
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer(options =>
@@ -57,6 +61,9 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+app.UseExceptionHandler();
+
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
