@@ -12,7 +12,8 @@ public class AuthController(IUserService service) : ControllerBase
     [HttpPost("register")]
     public async Task<ActionResult<UserDto>> Register(CreateUserDto dto)
     {
-        return await service.RegisterAsync(dto);
+        return StatusCode(StatusCodes.Status201Created, 
+            await service.RegisterAsync(dto));
     }
     
     [HttpPost("login")]

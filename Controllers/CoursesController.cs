@@ -17,7 +17,7 @@ public class CoursesController(ICourseService service) : ControllerBase
     }
 
     [HttpGet("{courseId:Guid}")]
-    public async Task<ActionResult<CourseDto>> GetById(Guid courseId)
+    public async Task<ActionResult<CourseDetailDto>> GetById(Guid courseId)
     {
         return Ok(await service.GetById(courseId));
     }

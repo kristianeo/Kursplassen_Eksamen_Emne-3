@@ -13,7 +13,7 @@ public class RegistrationsController(IRegistrationService service) : ControllerB
     private Guid CurrentUserId =>
         Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
     
-    [HttpPost("/api/courses/{courseId:Guid}/registration")]
+    [HttpPost("/api/courses/{courseId:Guid}/registrations")]
     [Authorize(Roles = "Participant")]
     public async Task<ActionResult<RegistrationDto>> Register(Guid courseId)
     {
@@ -23,7 +23,7 @@ public class RegistrationsController(IRegistrationService service) : ControllerB
 
     [HttpGet("mine")]
     [Authorize(Roles = "Participant")]
-    public async Task<ActionResult<IEnumerable<RegistrationDto>>> GetUserRegistrations()
+    public async Task<ActionResult<IEnumerable<UserRegistrationDto>>> GetUserRegistrations()
     {
         return Ok(await service.GetUserRegistrations(CurrentUserId));
     }
