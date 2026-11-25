@@ -1,6 +1,240 @@
-@Kursplassen_Eksamen_Emne_3_HostAddress = http://localhost:5053
+@host = http://localhost:5053
 
-GET {{Kursplassen_Eksamen_Emne_3_HostAddress}}/weatherforecast/
+@pythonCourseId = bb7f7e1c-ba8c-45db-a8e1-380fff57fd75
+@sqlCourseId = b30c0592-1a2f-48c7-bf99-32df59f6c443
+@securityCourseId = 47a2edea-1893-4bce-8404-22f3a4355c2b
+
+@idaToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjQ5ZDYxYzMyLTcwYTMtNDJkMy05N2E2LWFjNTE0YjgyNDNmOSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6Ikluc3RydWN0b3IiLCJleHAiOjE3OTU2MTg4ODUsImlzcyI6Ikt1cnNwbGFzc2VuQXBpIiwiYXVkIjoiS3Vyc3BsYXNzZW5DbGllbnRzIn0.8Lg9XmU3awrEj9OQWclEeqH7HQOkZf9v9jhykE2vz0w
+@noraToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEzNWMxMzkyLTZiMzgtNDZjNi05MjcyLTIwMTk2MjFiNzY3MyIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlBhcnRpY2lwYW50IiwiZXhwIjoxNzk1NjE5NzEyLCJpc3MiOiJLdXJzcGxhc3NlbkFwaSIsImF1ZCI6Ikt1cnNwbGFzc2VuQ2xpZW50cyJ9.9zknpuJ7aQlp6xNaK8GnYD9V1u-l6BcP8xASnZV8ITc
+@jonasToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjE1ZjVkYzRjLTUxOGMtNDkzMi1iODM1LWYxZTY0YjIzODVkNSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlBhcnRpY2lwYW50IiwiZXhwIjoxNzk1NjE5ODkwLCJpc3MiOiJLdXJzcGxhc3NlbkFwaSIsImF1ZCI6Ikt1cnNwbGFzc2VuQ2xpZW50cyJ9.8TMeJGe1fsRYPQyU3NCfu27yq1kz58C--ixOLO9GYE0
+
+### ============ AUTH ============
+
+### Register a new participant
+# @name registerNew
+POST {{host}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "ny.bruker@example.com",
+  "password": "Test1234!",
+  "displayName": "Ny Bruker"
+}
+
+### Register with an email that already exists (expect 409)
+POST {{host}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "nora@example.com",
+  "password": "Test1234!",
+  "displayName": "Duplicate Nora"
+}
+
+### Log in as instructor Ida (token is reused below)
+# @name loginIda
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "ida@example.com",
+  "password": "Test1234!"
+}
+
+### Log in as instructor Omar
+# @name loginOmar
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "omar@example.com",
+  "password": "Test1234!"
+}
+
+### Log in as participant Nora
+# @name loginNora
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "nora@example.com",
+  "password": "Test1234!"
+}
+
+### Log in as participant Jonas
+# @name loginJonas
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "jonas@example.com",
+  "password": "Test1234!"
+}
+
+### Wrong password (expect 401)
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "ida@example.com",
+  "password": "wrong-password"
+}
+
+### ============ COURSES (public) ============
+
+### List published, upcoming courses (copy the ids into the variables at the top)
+GET {{host}}/api/courses
 Accept: application/json
 
-###
+### Course details with registered count and available spots
+GET {{host}}/api/courses/{{pythonCourseId}}
+Accept: application/json
+
+### Full course: 0 available spots
+GET {{host}}/api/courses/{{sqlCourseId}}
+Accept: application/json
+
+### Course that does not exist (expect 404)
+GET {{host}}/api/courses/00000000-0000-0000-0000-000000000000
+Accept: application/json
+
+### ============ COURSES (instructor) ============
+
+### Create a course as Ida (she becomes the owner)
+# @name createCourse
+POST {{host}}/api/courses
+Content-Type: application/json
+Authorization: Bearer {{idaToken}}
+
+{
+  "title": "Docker i praksis",
+  "description": "Praktisk bruk av Docker og Docker Compose.",
+  "startsAtUtc": "2027-01-15T09:00:00Z",
+  "endsAtUtc": "2027-01-15T14:00:00Z",
+  "location": "Sandefjord, rom A",
+  "capacity": 10,
+  "status": "Published"
+}
+
+### Validation error: end before start and capacity 0 (expect 400)
+POST {{host}}/api/courses
+Content-Type: application/json
+Authorization: Bearer {{idaToken}}
+
+{
+  "title": "Ugyldig kurs",
+  "description": "Skal avvises.",
+  "startsAtUtc": "2027-01-15T14:00:00Z",
+  "endsAtUtc": "2027-01-15T09:00:00Z",
+  "location": "Nettbasert",
+  "capacity": 0,
+  "status": "Published"
+}
+
+### Authorization error: participant tries to create a course (expect 403)
+POST {{host}}/api/courses
+Content-Type: application/json
+Authorization: Bearer {{noraToken}}
+
+{
+  "title": "Skal ikke fungere",
+  "description": "Deltakere kan ikke opprette kurs.",
+  "startsAtUtc": "2027-01-15T09:00:00Z",
+  "endsAtUtc": "2027-01-15T14:00:00Z",
+  "location": "Nettbasert",
+  "capacity": 5,
+  "status": "Published"
+}
+
+### No token (expect 401)
+POST {{host}}/api/courses
+Content-Type: application/json
+
+{
+  "title": "Uten innlogging",
+  "description": "Skal avvises.",
+  "startsAtUtc": "2027-01-15T09:00:00Z",
+  "endsAtUtc": "2027-01-15T14:00:00Z",
+  "location": "Nettbasert",
+  "capacity": 5,
+  "status": "Published"
+}
+
+### Edit own course (Ida edits the course she just created)
+PUT {{host}}/api/courses/{{createCourse.response.body.id}}
+Content-Type: application/json
+Authorization: Bearer {{loginIda.response.body.token}}
+
+{
+  "title": "Docker i praksis (oppdatert)",
+  "description": "Oppdatert beskrivelse.",
+  "startsAtUtc": "2027-01-15T09:00:00Z",
+  "endsAtUtc": "2027-01-15T15:00:00Z",
+  "location": "Sandefjord, rom B",
+  "capacity": 12,
+  "status": "Published"
+}
+
+### Authorization error: Omar tries to edit Ida's course (expect 403)
+PUT {{host}}/api/courses/{{createCourse.response.body.id}}
+Content-Type: application/json
+Authorization: Bearer {{loginOmar.response.body.token}}
+
+{
+  "title": "Overtatt kurs",
+  "description": "Skal avvises.",
+  "startsAtUtc": "2027-01-15T09:00:00Z",
+  "endsAtUtc": "2027-01-15T15:00:00Z",
+  "location": "Nettbasert",
+  "capacity": 12,
+  "status": "Published"
+}
+
+### Delete a course that has active registrations (expect 409)
+DELETE {{host}}/api/courses/{{pythonCourseId}}
+Authorization: Bearer {{idaToken}}
+
+### Delete own course without registrations (expect 204)
+DELETE {{host}}/api/courses/{{createCourse.response.body.id}}
+Authorization: Bearer {{loginIda.response.body.token}}
+
+### ============ REGISTRATIONS (participant) ============
+
+### Register Jonas for the Python course
+# @name registerJonas
+POST {{host}}/api/courses/{{pythonCourseId}}/registrations
+Authorization: Bearer {{jonasToken}}
+
+### Register again for the same course (expect 409, already registered)
+POST {{host}}/api/courses/{{pythonCourseId}}/registrations
+Authorization: Bearer {{loginJonas.response.body.token}}
+
+### Register for the full SQL course (expect 409, full)
+POST {{host}}/api/courses/{{sqlCourseId}}/registrations
+Authorization: Bearer {{loginJonas.response.body.token}}
+
+### Instructor tries to register (expect 403)
+POST {{host}}/api/courses/{{pythonCourseId}}/registrations
+Authorization: Bearer {{loginIda.response.body.token}}
+
+### My registrations
+GET {{host}}/api/registrations/mine
+Accept: application/json
+Authorization: Bearer {{loginJonas.response.body.token}}
+
+### Cancel own registration (the one created above, expect 204)
+DELETE {{host}}/api/registrations/{{registerJonas.response.body.id}}
+Authorization: Bearer {{loginJonas.response.body.token}}
+
+### Authorization error: Nora tries to cancel Jonas's registration (expect 403)
+DELETE {{host}}/api/registrations/{{registerJonas.response.body.id}}
+Authorization: Bearer {{loginNora.response.body.token}}
+
+### Registering again after cancelling works (expect 201)
+POST {{host}}/api/courses/{{pythonCourseId}}/registrations
+Authorization: Bearer {{loginJonas.response.body.token}}
+
+### ============ HEALTH ============
+
+### Health check
+GET {{host}}/health

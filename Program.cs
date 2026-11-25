@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json.Serialization;
 using Kursplassen_Eksamen_Emne_3;
 using Kursplassen_Eksamen_Emne_3.Exceptions;
 using Kursplassen_Eksamen_Emne_3.Handlers;
@@ -14,7 +15,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
@@ -56,10 +59,16 @@ builder.Services.AddAuthorizationBuilder()
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<KursplassenDbContext>();
+    var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>();
+
+    await db.Database.MigrateAsync();
+    await DbSeeder.SeedAsync(db, hasher);
 }
 
 app.UseExceptionHandler();
