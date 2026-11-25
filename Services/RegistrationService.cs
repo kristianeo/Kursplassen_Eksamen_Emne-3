@@ -1,6 +1,9 @@
+using System.Data;
 using Kursplassen_Eksamen_Emne_3.Dtos;
+using Kursplassen_Eksamen_Emne_3.Exceptions;
 using Kursplassen_Eksamen_Emne_3.Models;
 using Microsoft.EntityFrameworkCore;
+using MySql.Data.MySqlClient;
 
 namespace Kursplassen_Eksamen_Emne_3.Services;
 
@@ -34,21 +37,62 @@ public class RegistrationService(KursplassenDbContext connection) : IRegistratio
         return registration?.ToDto();
     }
 
-    //TODO: CreateRegistrationDTO
-    public Task<RegistrationDto> Create()
+    public async Task<RegistrationDto> Create(Guid courseId, Guid userId)
     {
-        throw new NotImplementedException();
-    }
+        await using var tx = await connection.Database
+            .BeginTransactionAsync(IsolationLevel.Serializable);
+        try
+        {
+            var course = await connection.Courses.FindAsync(courseId)
+                         ?? throw new NotFoundException("Course not found");
 
-    //TODO: Add forbidden response with userid 
-    public async Task<RequestResponse> Delete(Guid id)
+            if (course.Status != CourseStatus.Published)
+                throw new ConflictException("Course not open for registration");
+
+            if (course.StartsAtUtc <= DateTime.UtcNow)
+                throw new ConflictException("Course has already started");
+
+            var alreadyRegistered = await connection.Registrations
+                .AnyAsync(r => r.CourseId == courseId && r.ActiveParticipantUserId == userId);
+            if (alreadyRegistered)
+                throw new ConflictException("You are already registered for this course");
+
+            var activeCount = await connection.Registrations
+                .CountAsync(r => r.CourseId == courseId && r.CancelledAtUtc == null);
+            if (activeCount >= course.Capacity)
+                throw new ConflictException("Course is at max capacity");
+
+            var registration = new Registration
+            {
+                Id = Guid.NewGuid(),
+                CourseId = courseId,
+                ParticipantUserId = userId,
+                RegisteredAtUtc = DateTime.UtcNow,
+                ActiveParticipantUserId = userId
+            };
+
+            connection.Registrations.Add(registration);
+            await connection.SaveChangesAsync();
+            await tx.CommitAsync();
+
+            return registration.ToDto();
+        }
+        catch (Exception ex) when (ex is DbUpdateException or MySqlException { Number: 1213 })
+        {
+            throw new ConflictException(
+                "Could not complete the registration. You may already be registered, " +
+                "or the course just filled up. Please try again.");
+        }
+    }
+    
+    //TODO: Should not delete, just cancel
+    public async Task Delete(Guid id)
     {
-        var registration = await connection.Registrations.FindAsync(id);
-        if (registration == null) return RequestResponse.NotFound;
+        var registration = await connection.Registrations.FindAsync(id) ??
+                           throw new NotFoundException("Registration not found");
 
         connection.Registrations.Remove(registration);
         await connection.SaveChangesAsync();
-        return RequestResponse.Approved;
     }
 
     //TODO: EditRegistrationDto

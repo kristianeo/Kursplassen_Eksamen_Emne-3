@@ -8,7 +8,7 @@ public interface IRegistrationService
     public Task<IEnumerable<RegistrationDto>> GetAll();
     public Task<IEnumerable<RegistrationDto>> GetUserRegistrations(Guid userId);
     public Task<RegistrationDto?> GetById(Guid id);
-    public Task<RegistrationDto> Create();
-    public Task<RequestResponse> Delete(Guid id);
+    public Task<RegistrationDto> Create(Guid courseId, Guid userId);
+    public Task Delete(Guid id);
     public Task<RegistrationDto> Edit(Guid id);
 }
