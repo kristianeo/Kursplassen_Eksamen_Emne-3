@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Text;
 using Kursplassen_Eksamen_Emne_3.Dtos;
 using Kursplassen_Eksamen_Emne_3.Exceptions;
+using Kursplassen_Eksamen_Emne_3.Logging;
 using Kursplassen_Eksamen_Emne_3.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +14,8 @@ namespace Kursplassen_Eksamen_Emne_3.Services;
 
 public class UserService(KursplassenDbContext connection, 
     IPasswordHasher<User> hasher,
-    IConfiguration config) : IUserService
+    IConfiguration config,
+    ILogger<UserService> logger) : IUserService
 {
     public async Task<UserDto> RegisterAsync(CreateUserDto dto)
     {
@@ -40,6 +42,7 @@ public class UserService(KursplassenDbContext connection,
             await connection.SaveChangesAsync();
             await tx.CommitAsync();
 
+            Log.UserRegistered(logger, user.Id);
             return user.ToDto();
         }
         catch (Exception ex) when (ex is DbUpdateException)
@@ -56,8 +59,12 @@ public class UserService(KursplassenDbContext connection,
         var user = await connection.Users.SingleOrDefaultAsync(u => u.Email.Equals(email));
         if (user is null ||
             hasher.VerifyHashedPassword(user, user.PasswordHash, dto.Password) == PasswordVerificationResult.Failed)
+        {
+            Log.LoginFailed(logger);
             throw new UnauthorizedException("Invalid email or password.");
+        }
 
+        Log.LoginSuccessful(logger, user.Id);
         return new LoginResponseDto { Token = CreateToken(user) };
     }
     

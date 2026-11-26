@@ -1,5 +1,6 @@
 using Kursplassen_Eksamen_Emne_3.Dtos;
 using Kursplassen_Eksamen_Emne_3.Exceptions;
+using Kursplassen_Eksamen_Emne_3.Logging;
 using Kursplassen_Eksamen_Emne_3.Models;
 using Microsoft.EntityFrameworkCore;
 using ValidationException = Kursplassen_Eksamen_Emne_3.Exceptions.ValidationException;
@@ -65,8 +66,7 @@ public class CourseService(KursplassenDbContext connection,
         connection.Courses.Add(course);
         await connection.SaveChangesAsync();
 
-        logger.LogInformation(
-            "Course {CourseId} created by user {UserId}", course.Id, userId);
+        Log.CourseCreated(logger, course.Id, userId);
         return course.ToDto();
     }
     
@@ -82,8 +82,7 @@ public class CourseService(KursplassenDbContext connection,
         
         connection.Courses.Remove(course);
         await connection.SaveChangesAsync();
-        logger.LogInformation(
-            "Course {CourseId} deleted by user {UserId}", course.Id, course.OwnerUserId);
+        Log.CourseDeleted(logger, id, course.OwnerUserId);
     }
     
     public async Task<CourseDto> Edit(EditCourseDto dto, Guid id)
@@ -111,8 +110,7 @@ public class CourseService(KursplassenDbContext connection,
         
         await connection.SaveChangesAsync();
 
-        logger.LogInformation(
-            "Course {CourseId} edited by user {UserId}", course.Id, course.OwnerUserId);
+        Log.CourseEdited(logger, id, course.OwnerUserId);
         return course.ToDto(activeCount);
     }
     
