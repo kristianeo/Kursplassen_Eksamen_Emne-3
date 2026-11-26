@@ -1,3 +1,4 @@
+using Kursplassen_Eksamen_Emne_3.Logging;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,9 +21,9 @@ public class GlobalExceptionHandler(
         };
 
         if (status == StatusCodes.Status500InternalServerError)
-            logger.LogError(exception, "Unhandled exception on {Path}", context.Request.Path);
+            Log.Status500Error(logger, exception, context.Request.Path);
         else
-            logger.LogInformation("Request rejected with {Status}: {Message}", status, exception.Message);
+            Log.Status400sError(logger, status, exception.Message);
 
         context.Response.StatusCode = status;
         await context.Response.WriteAsJsonAsync(new ProblemDetails

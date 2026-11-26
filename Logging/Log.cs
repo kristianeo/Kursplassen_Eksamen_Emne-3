@@ -28,4 +28,11 @@ public static partial class Log
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Registration {RegistrationId} cancelled")]
     public static partial void RegistrationCancelled(ILogger logger, Guid registrationId);
+    
+    // Logging for exceptions
+    [LoggerMessage(Level = LogLevel.Error, Message = "Unhandled exception on {Path}")]
+    public static partial void Status500Error(ILogger logger, Exception exception, PathString path);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Request rejected with {Status}: {Message}")]
+    public static partial void Status400sError(ILogger logger, int status, string message);
 }
