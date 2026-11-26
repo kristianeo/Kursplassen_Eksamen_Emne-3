@@ -7,7 +7,7 @@ using ValidationException = Kursplassen_Eksamen_Emne_3.Exceptions.ValidationExce
 namespace Kursplassen_Eksamen_Emne_3.Services;
 
 public class CourseService(KursplassenDbContext connection,
-    ILogger<Course> _logger) : ICourseService
+    ILogger<CourseService> logger) : ICourseService
 {
     public async Task<IEnumerable<CourseSummaryDto>> GetAll() =>  
         await connection.Courses
@@ -65,7 +65,7 @@ public class CourseService(KursplassenDbContext connection,
         connection.Courses.Add(course);
         await connection.SaveChangesAsync();
 
-        _logger.LogInformation(
+        logger.LogInformation(
             "Course {CourseId} created by user {UserId}", course.Id, userId);
         return course.ToDto();
     }
@@ -82,7 +82,7 @@ public class CourseService(KursplassenDbContext connection,
         
         connection.Courses.Remove(course);
         await connection.SaveChangesAsync();
-        _logger.LogInformation(
+        logger.LogInformation(
             "Course {CourseId} deleted by user {UserId}", course.Id, course.OwnerUserId);
     }
     
@@ -111,7 +111,7 @@ public class CourseService(KursplassenDbContext connection,
         
         await connection.SaveChangesAsync();
 
-        _logger.LogInformation(
+        logger.LogInformation(
             "Course {CourseId} edited by user {UserId}", course.Id, course.OwnerUserId);
         return course.ToDto(activeCount);
     }
