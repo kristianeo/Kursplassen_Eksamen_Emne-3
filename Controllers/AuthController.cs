@@ -2,11 +2,13 @@ using Kursplassen_Eksamen_Emne_3.Dtos;
 using Kursplassen_Eksamen_Emne_3.Models;
 using Kursplassen_Eksamen_Emne_3.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Kursplassen_Eksamen_Emne_3.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[EnableRateLimiting("limit")]
 public class AuthController(IUserService service) : ControllerBase
 {
     [HttpPost("register")]
