@@ -1,4 +1,4 @@
-namespace Kursplassen_Eksamen_Emne_3.Models;
+namespace Kursplassen_Eksamen_Emne_3.Dtos;
 
 public class LoginResponseDto
 {

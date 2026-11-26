@@ -25,7 +25,7 @@ public class RegistrationOwnerHandler(KursplassenDbContext db)
             .FirstOrDefaultAsync();
 
         if (participantId is null)
-            throw new NotFoundException("Course not found.");
+            throw new NotFoundException("Registration not found.");
         
         if (participantId == userId)
             context.Succeed(requirement);

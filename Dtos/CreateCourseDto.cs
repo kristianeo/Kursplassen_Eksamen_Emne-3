@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.Configuration;
 using Kursplassen_Eksamen_Emne_3.Models;
 
 namespace Kursplassen_Eksamen_Emne_3.Dtos;
@@ -20,5 +19,9 @@ public class CreateCourseDto
     
     [Required, Range(1, int.MaxValue, ErrorMessage = "Capacity must be at least 1")] 
     public int Capacity { get; set; }
+    
+    [AllowedValues(CourseStatus.Draft, CourseStatus.Published,
+        ErrorMessage = "A new course must be Draft or Published. " +
+                       "If none is chosen, it defaults to draft")]
     public CourseStatus Status { get; set; } = CourseStatus.Draft;
 }

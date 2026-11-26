@@ -1,3 +1,4 @@
+using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -7,6 +8,7 @@ using Kursplassen_Eksamen_Emne_3.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using MySql.Data.MySqlClient;
 
 namespace Kursplassen_Eksamen_Emne_3.Services;
 
@@ -16,25 +18,37 @@ public class UserService(KursplassenDbContext connection,
 {
     public async Task<UserDto> RegisterAsync(CreateUserDto dto)
     {
-        var email = dto.Email.Trim().ToLowerInvariant();
-        if (await connection.Users.AnyAsync(u => u.Email == email))
-            throw new ConflictException("The email is already in use");
-
-        User user = new User
+        await using var tx = await connection.Database
+            .BeginTransactionAsync(IsolationLevel.Serializable);
+        try
         {
-            Id = Guid.NewGuid(),
-            Email = dto.Email.Trim().ToLowerInvariant(),
-            DisplayName = dto.DisplayName,
-            Role = UserRole.Participant,
-            CreatedAtUtc = DateTime.UtcNow
-        };
+            var email = dto.Email.Trim().ToLowerInvariant();
+            if (await connection.Users.AnyAsync(u => u.Email == email))
+                throw new ConflictException("The email is already in use");
 
-        user.PasswordHash = hasher.HashPassword(user, dto.Password);
+            User user = new User
+            {
+                Id = Guid.NewGuid(),
+                Email = dto.Email.Trim().ToLowerInvariant(),
+                DisplayName = dto.DisplayName,
+                Role = UserRole.Participant,
+                CreatedAtUtc = DateTime.UtcNow
+            };
 
-        connection.Users.Add(user);
-        await connection.SaveChangesAsync();
+            user.PasswordHash = hasher.HashPassword(user, dto.Password);
 
-        return user.ToDto();
+            connection.Users.Add(user);
+            await connection.SaveChangesAsync();
+            await tx.CommitAsync();
+
+            return user.ToDto();
+        }
+        catch (Exception ex) when (ex is DbUpdateException)
+        {
+            throw new ConflictException(
+                "Could not complete the registration. You may already be registered, " +
+                "and the email already in use. Please try again.");
+        }
     }
 
     public async Task<LoginResponseDto> LoginAsync(LoginDto dto)
