@@ -71,7 +71,7 @@ public class RegistrationService(KursplassenDbContext connection,
             await connection.SaveChangesAsync();
             await tx.CommitAsync();
 
-            Log.CourseRegistered(logger, userId, courseId);
+            Log.CourseRegistered(logger, courseId, userId);
             return registration.ToDto();
         }
         catch (Exception ex) when (ex is DbUpdateException or MySqlException { Number: 1213 })
@@ -94,7 +94,7 @@ public class RegistrationService(KursplassenDbContext connection,
         registration.ActiveParticipantUserId = null;
         registration.CancelledAtUtc = DateTime.UtcNow;
         
-        Log.RegistrationCancelled(logger, id);
         await connection.SaveChangesAsync();
+        Log.RegistrationCancelled(logger, id);
     }
 }
