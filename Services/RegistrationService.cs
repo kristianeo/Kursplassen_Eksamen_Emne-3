@@ -1,13 +1,15 @@
 using System.Data;
 using Kursplassen_Eksamen_Emne_3.Dtos;
 using Kursplassen_Eksamen_Emne_3.Exceptions;
+using Kursplassen_Eksamen_Emne_3.Logging;
 using Kursplassen_Eksamen_Emne_3.Models;
 using Microsoft.EntityFrameworkCore;
 using MySql.Data.MySqlClient;
 
 namespace Kursplassen_Eksamen_Emne_3.Services;
 
-public class RegistrationService(KursplassenDbContext connection) : IRegistrationService
+public class RegistrationService(KursplassenDbContext connection,
+    ILogger<RegistrationService> logger) : IRegistrationService
 {
 
     public async Task<IEnumerable<UserRegistrationDto>> GetUserRegistrations(Guid userId)
@@ -69,6 +71,7 @@ public class RegistrationService(KursplassenDbContext connection) : IRegistratio
             await connection.SaveChangesAsync();
             await tx.CommitAsync();
 
+            Log.CourseRegistered(logger, courseId, userId);
             return registration.ToDto();
         }
         catch (Exception ex) when (ex is DbUpdateException or MySqlException { Number: 1213 })
@@ -92,5 +95,6 @@ public class RegistrationService(KursplassenDbContext connection) : IRegistratio
         registration.CancelledAtUtc = DateTime.UtcNow;
         
         await connection.SaveChangesAsync();
+        Log.RegistrationCancelled(logger, id);
     }
 }

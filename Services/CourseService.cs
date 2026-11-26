@@ -1,12 +1,14 @@
 using Kursplassen_Eksamen_Emne_3.Dtos;
 using Kursplassen_Eksamen_Emne_3.Exceptions;
+using Kursplassen_Eksamen_Emne_3.Logging;
 using Kursplassen_Eksamen_Emne_3.Models;
 using Microsoft.EntityFrameworkCore;
 using ValidationException = Kursplassen_Eksamen_Emne_3.Exceptions.ValidationException;
 
 namespace Kursplassen_Eksamen_Emne_3.Services;
 
-public class CourseService(KursplassenDbContext connection) : ICourseService
+public class CourseService(KursplassenDbContext connection,
+    ILogger<CourseService> logger) : ICourseService
 {
     public async Task<IEnumerable<CourseSummaryDto>> GetAll() =>  
         await connection.Courses
@@ -64,6 +66,7 @@ public class CourseService(KursplassenDbContext connection) : ICourseService
         connection.Courses.Add(course);
         await connection.SaveChangesAsync();
 
+        Log.CourseCreated(logger, course.Id, userId);
         return course.ToDto();
     }
     
@@ -79,6 +82,7 @@ public class CourseService(KursplassenDbContext connection) : ICourseService
         
         connection.Courses.Remove(course);
         await connection.SaveChangesAsync();
+        Log.CourseDeleted(logger, id, course.OwnerUserId);
     }
     
     public async Task<CourseDto> Edit(EditCourseDto dto, Guid id)
@@ -106,6 +110,7 @@ public class CourseService(KursplassenDbContext connection) : ICourseService
         
         await connection.SaveChangesAsync();
 
+        Log.CourseEdited(logger, id, course.OwnerUserId);
         return course.ToDto(activeCount);
     }
     
