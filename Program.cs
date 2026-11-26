@@ -32,13 +32,29 @@ builder.Services.AddOpenApi(options =>
             Scheme = "bearer",
             BearerFormat = "JWT"
         };
-        document.Security =
-        [
-            new OpenApiSecurityRequirement
-            {
-                [new OpenApiSecuritySchemeReference("Bearer", document)] = []
-            }
-        ];
+        
+        return Task.CompletedTask;
+    });
+    options.AddOperationTransformer((operation, context, cancellationToken) =>
+    {
+        var metadata = context.Description.ActionDescriptor.EndpointMetadata;
+        var requiresAuth = metadata.OfType<IAuthorizeData>().Any()
+                           && !metadata.OfType<IAllowAnonymous>().Any();
+
+        if (requiresAuth)
+        {
+            operation.Security =
+            [
+                new OpenApiSecurityRequirement
+                {
+                    [new OpenApiSecuritySchemeReference("Bearer", context.Document)] = []
+                }
+            ];
+            var roles = metadata.OfType<IAuthorizeData>()
+                .Select(a => a.Roles ?? a.Policy)
+                .Where(x => x is not null);
+            operation.Description = $"Requires: {string.Join(", ", roles)}";
+        }
         return Task.CompletedTask;
     });
 });

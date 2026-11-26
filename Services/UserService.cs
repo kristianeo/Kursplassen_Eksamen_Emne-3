@@ -8,7 +8,6 @@ using Kursplassen_Eksamen_Emne_3.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using MySql.Data.MySqlClient;
 
 namespace Kursplassen_Eksamen_Emne_3.Services;
 
