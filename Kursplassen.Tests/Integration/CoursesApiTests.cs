@@ -14,6 +14,7 @@ using Xunit.Abstractions;
 
 namespace Kursplassen.Tests.Integration;
 
+[Trait("Category", "Integration")]
 public class CoursesApiTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly HttpClient _client;

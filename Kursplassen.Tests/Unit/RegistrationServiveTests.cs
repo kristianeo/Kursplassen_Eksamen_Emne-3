@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Kursplassen.Tests.Unit;
 
+[Trait("Category", "Unit")]
 public class RegistrationServiceTests
 {
     private static KursplassenDbContext CreateDb()
