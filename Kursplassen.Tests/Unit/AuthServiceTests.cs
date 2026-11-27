@@ -11,6 +11,7 @@ using Moq;
 
 namespace Kursplassen.Tests.Unit;
 
+[Trait("Category", "Unit")]
 public class AuthServiceTests
 {
     private static KursplassenDbContext CreateDb()
@@ -72,6 +73,7 @@ public class AuthServiceTests
     public async Task Login_InvalidPassword_ThrowsUnauthorized()
     {
         await using var db = CreateDb();
+        await AddUserAsync(db);
         
         var hasher = CreateHasher(PasswordVerificationResult.Failed);
         var service = new UserService(db, hasher.Object, CreateConfig(), NullLogger<UserService>.Instance);
@@ -92,6 +94,7 @@ public class AuthServiceTests
         var loginResponseDto = await service.LoginAsync(new LoginDto { Email = "nora@example.com", Password = "Test1234!" });
         
         Assert.NotNull(loginResponseDto.Token);
+        hasher.Verify(h => h.VerifyHashedPassword(It.IsAny<User>(), It.IsAny<string>(), "Test1234!"), Times.Once);
     }
     
     [Fact]
