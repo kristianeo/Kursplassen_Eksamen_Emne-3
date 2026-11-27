@@ -9,7 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
-namespace Kursplassen.Tests;
+namespace Kursplassen.Tests.Unit;
 
 public class AuthServiceTests
 {

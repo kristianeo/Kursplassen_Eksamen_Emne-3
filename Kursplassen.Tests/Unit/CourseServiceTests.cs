@@ -6,7 +6,7 @@ using Kursplassen_Eksamen_Emne_3.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace Kursplassen.Tests;
+namespace Kursplassen.Tests.Unit;
 
 public class CourseServiceTests
 {
