@@ -33,6 +33,7 @@ public class RegistrationService(KursplassenDbContext connection,
          .ToListAsync();
     }
 
+    //TODO: how to physically test with two at once 
     public async Task<RegistrationDto> Create(Guid courseId, Guid userId)
     {
         await using var tx = await connection.Database
