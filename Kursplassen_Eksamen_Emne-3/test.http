@@ -1,0 +1,143 @@
+@host = http://localhost:5053
+
+@pythonCourseId = 22222222-0000-0000-0000-000000000001
+@sqlCourseId = 22222222-0000-0000-0000-000000000002
+@newCourseId = 
+
+@idaToken = 
+@omarToken = 
+@jonasToken = 
+
+@jonasRegistration = 
+
+### Register a new participant
+POST {{host}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "ny.bruker@example.com",
+  "password": "Test1234!",
+  "displayName": "Ny Bruker"
+} 
+
+### Log in as Ida
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "ida@example.com",
+  "password": "Test1234!"
+}
+
+### Log in as Omar
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "omar@example.com",
+  "password": "Test1234!"
+}
+
+### Log in as Jonas
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "jonas@example.com",
+  "password": "Test1234!"
+}
+
+### View all courses => 200 OK
+GET {{host}}/api/courses
+Accept: application/json
+
+### Course details with registered count and available spots => 200 OK
+GET {{host}}/api/courses/{{pythonCourseId}}
+Accept: application/json
+
+### Course that does not exist => 404 Not Found
+GET {{host}}/api/courses/00000000-0000-0000-0000-000000000000
+Accept: application/json
+
+### Register a course as Ida => 201 Created
+POST {{host}}/api/courses
+Content-Type: application/json
+Authorization: Bearer {{idaToken}}
+
+{
+  "title": "Testing av REST APIer",
+  "description": "xUnit og integrasjonstesting",
+  "startsAtUtc": "2027-01-15T09:00:00Z",
+  "endsAtUtc": "2027-01-15T14:00:00Z",
+  "location": "Oslo, Auditoriumet",
+  "capacity": 15,
+  "status": "Published"
+}
+
+### Edit own course (Ida edits the course she just created) => 200 OK
+PUT {{host}}/api/courses/{{newCourseId}}
+Content-Type: application/json
+Authorization: Bearer {{idaToken}}
+
+{
+  "title": "Testing av REST APIer (oppdatert)",
+  "description": "Oppdatert beskrivelse.",
+  "startsAtUtc": "2027-01-15T09:00:00Z",
+  "endsAtUtc": "2027-01-15T15:00:00Z",
+  "location": "Oslo, Auditoriumet",
+  "capacity": 12,
+  "status": "Published"
+}
+
+### Create a course with no token => 401 Unauthorized 
+POST {{host}}/api/courses
+Content-Type: application/json
+
+{
+  "title": "Uten innlogging",
+  "description": "Skal avvises.",
+  "startsAtUtc": "2027-01-15T09:00:00Z",
+  "endsAtUtc": "2027-01-15T14:00:00Z",
+  "location": "Nettbasert",
+  "capacity": 5,
+  "status": "Published"
+}
+
+### Omar tries to edit Ida's course => 403 Forbidden
+PUT {{host}}/api/courses/{{newCourseId}}
+Content-Type: application/json
+Authorization: Bearer {{omarToken}}
+
+{
+  "title": "Overtatt kurs",
+  "description": "Skal avvises.",
+  "startsAtUtc": "2027-01-15T09:00:00Z",
+  "endsAtUtc": "2027-01-15T15:00:00Z",
+  "location": "Nettbasert",
+  "capacity": 12,
+  "status": "Published"
+}
+
+### Register Jonas for the Python course => 201 Created
+POST {{host}}/api/courses/{{pythonCourseId}}/registrations
+Authorization: Bearer {{jonasToken}}
+
+### Register again for the same course => 409 Conflict
+POST {{host}}/api/courses/{{pythonCourseId}}/registrations
+Authorization: Bearer {{jonasToken}}
+
+### Register for the full SQL course => 409 Conflict
+POST {{host}}/api/courses/{{sqlCourseId}}/registrations
+Authorization: Bearer {{jonasToken}}
+
+### Cancel own registration => 204 No Content
+DELETE {{host}}/api/registrations/{{jonasRegistration}}
+Authorization: Bearer {{jonasToken}}
+
+### Registering again after cancelling works => 201 Created
+POST {{host}}/api/courses/{{pythonCourseId}}/registrations
+Authorization: Bearer {{jonasToken}}
+
+### Instructor tries to register for own course => 403 Forbidden
+POST {{host}}/api/courses/{{pythonCourseId}}/registrations
+Authorization: Bearer {{idaToken}}
