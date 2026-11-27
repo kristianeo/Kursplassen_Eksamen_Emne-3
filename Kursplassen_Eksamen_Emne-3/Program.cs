@@ -1,6 +1,5 @@
 using System.Text;
 using System.Text.Json.Serialization;
-using System.Threading.RateLimiting;
 using Kursplassen_Eksamen_Emne_3;
 using Kursplassen_Eksamen_Emne_3.Exceptions;
 using Kursplassen_Eksamen_Emne_3.Handlers;
